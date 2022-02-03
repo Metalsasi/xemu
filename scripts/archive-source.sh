@@ -66,13 +66,14 @@ for sm in $submodules; do
             echo "WARNING: submodule $sm is out of sync"
             ;;
     esac
+    (cd "$sm"; git rev-parse HEAD 2>/dev/null >HEAD)
     (cd $sm; git archive --format tar --prefix "$sm/" $(tree_ish)) > "$sub_file"
     test $? -ne 0 && error "failed to archive submodule $sm ($smhash)"
     tar --concatenate --file "$tar_file" "$sub_file"
     test $? -ne 0 && error "failed append submodule $sm to $tar_file"
+    tar --append --file "$tar_file" "$sm"/HEAD
 done
 
-python3 ./scripts/gen-license.py > XEMU_LICENSE
 git rev-parse HEAD 2>/dev/null | tr -d '\n' > XEMU_COMMIT
 git symbolic-ref --short HEAD > XEMU_BRANCH
 git describe --match 'xemu-v*' | cut -c 7- | tr -d '\n' > XEMU_VERSION
